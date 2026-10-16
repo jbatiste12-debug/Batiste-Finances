@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Home Finances Tracker</title>
+    <style>
+        :root {
+            --bg-color: #121214;
+            --card-bg: #1e1e24;
+            --text-primary: #f4f4f6;
+            --text-secondary: #9ba1a6;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --accent-blue: #3498db;
+            --border-color: #2c2c35;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 16px;
+            padding-bottom: 40px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .controls-top {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .month-selector {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 3px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            max-width: 220px;
+        }
+
+        .month-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .month-btn.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-action {
+            background: #2a2a35;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-action.active-edit {
+            background: #e67e22;
+            color: white;
+            border-color: #e67e22;
+        }
+
+        .btn-add {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .snapshot-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.red { color: var(--accent-red); }
+
+        .bank-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+
+        .bank-input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .bank-input {
+            background: #121214;
+            border: 1px solid var(--accent-blue);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 90px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .net-result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .category-breakdown {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .cat-pill {
+            background: rgba(52, 152, 219, 0.15);
+            color: var(--accent-blue);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-row-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent-blue);
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .item-list {
+            list-style: none;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+            padding-right: 8px;
+        }
+
+        .item-name {
+            font-weight: 500;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .item-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .badge {
+            font-size: 10px;
+            background: #2a2a35;
+            color: var(--text-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-amount {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .amount-input {
+            background: #121214;
+            border: 1px solid #e67e22;
+            color: white;
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 75px;
+            text-align: right;
+        }
+
+        /* Delete button style */
+        .delete-btn {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+        }
+
+        body.editing .delete-btn {
+            display: inline-block;
+        }
+
+        .checkbox-container {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: relative;
+            height: 22px;
+            width: 22px;
+            background-color: #2a2a35;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 4px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body id="app-body">
+
+    <header>
+        <h1>Finances</h1>
+        <div class="controls-top">
+            <button class="btn-action btn-add" onclick="addNewMonth()">+ Month</button>
+            <button class="btn-action" id="edit-btn" onclick="toggleEditMode()">✏️ Edit</button>
+            <div class="month-selector" id="month-nav"></div>
+        </div>
+    </header>
+
+    <div id="app-container"></div>
+
+    <script>
+        let data = {
+            "October 2026": {
+                bankBalance: 397.08,
+                income: [
+                    { name: "JASON AFS", desc: "Monthly Salary", category: "Salary", amount: 5709.00, paid: true },
+                    { name: "GEORGIA - The Rock", desc: "Monthly Salary", category: "Salary", amount: 1061.00, paid: true },
+                    { name: "GEORGIA - Butterflies", desc: "Monthly Salary", category: "Salary", amount: 0.00, paid: false },
+                    { name: "Additional Income", desc: "From other sources", category: "Other", amount: 1350.00, paid: true }
+                ],
+                dd: [
+                    { name: "Mortgage", desc: "GHA Skipton", category: "Housing", amount: 970.05, paid: true },
+                    { name: "Rent", desc: "GHA Rent", category: "Housing", amount: 509.18, paid: true },
+                    { name: "Guernsey Electricity", desc: "Electricity Bill", category: "Utilities", amount: 250.00, paid: true },
+                    { name: "SOPM", desc: "Kids Activities", category: "Family", amount: 200.00, paid: true },
+                    { name: "JT Phone Bill", desc: "Phone Services", category: "Utilities", amount: 138.50, paid: true },
+                    { name: "The Rock Church", desc: "Tithings", category: "Giving", amount: 110.00, paid: true },
+                    { name: "Guernsey Water", desc: "Water Bill", category: "Utilities", amount: 105.00, paid: true },
+                    { name: "PetPlan", desc: "Pet Insurance", category: "Insurance", amount: 89.63, paid: true },
+                    { name: "Fuel Supplies", desc: "Transport", amount: 88.17, paid: true },
+                    { name: "Islands Insurance", desc: "Van Insurance", category: "Insurance", amount: 49.72, paid: true },
+                    { name: "Islands Insurance", desc: "Contents", category: "Insurance", amount: 41.99, paid: true },
+                    { name: "Compassion", desc: "Tithings", category: "Giving", amount: 37.00, paid: true },
+                    { name: "World Vision", desc: "Tithings", category: "Giving", amount: 30.00, paid: true },
+                    { name: "Islands Insurance", desc: "Car Insurance", category: "Insurance", amount: 26.92, paid: true },
+                    { name: "Netflix", desc: "Entertainment", category: "Subscriptions", amount: 20.99, paid: true },
+                    { name: "Window Cleaning", desc: "House Services", category: "Housing", amount: 20.00, paid: true },
+                    { name: "Gemini", desc: "AI Support", category: "Subscriptions", amount: 18.99, paid: false },
+                    { name: "T-Boat", desc: "AFS", category: "Work", amount: 15.00, paid: true },
+                    { name: "TV Licence", desc: "TV", category: "Subscriptions", amount: 14.95, paid: true },
+                    { name: "Unite", desc: "AFS", category: "Work", amount: 10.92, paid: true },
+                    { name: "Amazon Subscription", desc: "Subscription", category: "Subscriptions", amount: 8.99, paid: true },
+                    { name: "Amazon Ring", desc: "Services", category: "Subscriptions", amount: 7.99, paid: false },
+                    { name: "Trading 212", desc: "S&P 500", category: "Investments", amount: 100.00, paid: true },
+                    { name: "Trading 212", desc: "Japan and AI", category: "Investments", amount: 100.00, paid: true }
+                ],
+                adhoc: [
+                    { name: "Groceries", desc: "Food Shopping", category: "Groceries", amount: 500.00, paid: true },
+                    { name: "Groceries", desc: "Food Shopping", category: "Groceries", amount: 250.00, paid: true },
+                    { name: "Groceries", desc: "Food Shopping", category: "Groceries", amount: 250.00, paid: false }
+                ]
+            },
+            "November 2026": {
+                bankBalance: 0.00,
+                income: [
+                    { name: "JASON AFS", desc: "Monthly Salary", category: "Salary", amount: 5709.00, paid: false },
+                    { name: "GEORGIA - The Rock", desc: "Monthly Salary", category: "Salary", amount: 1061.00, paid: false }
+                ],
+                dd: [
+                    { name: "Mortgage", desc: "GHA Skipton", category: "Housing", amount: 970.05, paid: false },
+                    { name: "Rent", desc: "GHA Rent", category: "Housing", amount: 509.18, paid: false },
+                    { name: "Guernsey Electricity", desc: "Electricity Bill", category: "Utilities", amount: 250.00, paid: false },
+                    { name: "SOPM", desc: "Kids Activities", category: "Family", amount: 200.00, paid: false },
+                    { name: "HSBC Savings", desc: "Savings Transfer", category: "Investments", amount: 200.00, paid: false },
+                    { name: "JT Phone Bill", desc: "Phone Services", category: "Utilities", amount: 138.50, paid: false },
+                    { name: "The Rock Church", desc: "Tithings", category: "Giving", amount: 110.00, paid: false },
+                    { name: "Guernsey Water", desc: "Water Bill", category: "Utilities", amount: 105.00, paid: false },
+                    { name: "PetPlan", desc: "Pet Insurance", category: "Insurance", amount: 89.63, paid: false },
+                    { name: "Fuel Supplies", desc: "Transport", amount: 88.17, paid: false },
+                    { name: "Islands Insurance", desc: "Van", category: "Insurance", amount: 49.72, paid: false },
+                    { name: "Islands Insurance", desc: "Contents", category: "Insurance", amount: 41.99, paid: false },
+                    { name: "Compassion", desc: "Tithings", category: "Giving", amount: 37.00, paid: false },
+                    { name: "World Vision", desc: "Tithings", category: "Giving", amount: 30.00, paid: false },
+                    { name: "Islands Insurance", desc: "Car", category: "Insurance", amount: 26.92, paid: false },
+                    { name: "Netflix", desc: "Entertainment", category: "Subscriptions", amount: 20.99, paid: false },
+                    { name: "Window Cleaning", desc: "House Services", category: "Housing", amount: 20.00, paid: false },
+                    { name: "Gemini", desc: "AI Support", category: "Subscriptions", amount: 18.99, paid: false },
+                    { name: "T-Boat", desc: "AFS", category: "Work", amount: 15.00, paid: false },
+                    { name: "TV Licence", desc: "TV", category: "Subscriptions", amount: 14.95, paid: false },
+                    { name: "Unite", desc: "AFS", category: "Work", amount: 10.92, paid: false },
+                    { name: "Amazon Subscription", desc: "Subscription", category: "Subscriptions", amount: 8.99, paid: false },
+                    { name: "Amazon Ring", desc: "Services", category: "Subscriptions", amount: 7.99, paid: false }
+                ],
+                adhoc: [
+                    { name: "Groceries", desc: "Food Shopping", category: "Groceries", amount: 500.00, paid: false },
+                    { name: "Groceries", desc: "Food Shopping", category: "Groceries", amount: 250.00, paid: false },
+                    { name: "Groceries", desc: "Food Shopping", category: "Groceries", amount: 250.00, paid: false }
+                ]
+            }
+        };
+
+        let currentActiveMonth = "October 2026";
+
+        if (localStorage.getItem('home_finances_data_v9')) {
+            try { 
+                const saved = JSON.parse(localStorage.getItem('home_finances_data_v9'));
+                data = saved.data;
+                currentActiveMonth = saved.active;
+            } catch(e){}
+        }
+
+        function saveData() {
+            localStorage.setItem('home_finances_data_v9', JSON.stringify({ data, active: currentActiveMonth }));
+            render();
+        }
+
+        function render() {
+            const nav = document.getElementById('month-nav');
+            const container = document.getElementById('app-container');
+            nav.innerHTML = '';
+            container.innerHTML = '';
+
+            const months = Object.keys(data);
+            if (!months.includes(currentActiveMonth) && months.length > 0) {
+                currentActiveMonth = months[0];
+            }
+
+            months.forEach(month => {
+                nav.innerHTML += `<button class="month-btn ${month === currentActiveMonth ? 'active' : ''}" onclick="switchMonth('${month}')">${month.split(' ')[0]}</button>`;
+
+                const mData = data[month];
+                if (!mData.adhoc) mData.adhoc = [];
+                if (mData.bankBalance === undefined) mData.bankBalance = 0;
+
+                const incTotal = mData.income.reduce((s, i) => s + i.amount, 0);
+                const ddTotal = mData.dd.reduce((s, i) => s + i.amount, 0);
+                const adhocTotal = mData.adhoc.reduce((s, i) => s + i.amount, 0);
+                const totalOut = ddTotal + adhocTotal;
+                const plannedBalance = incTotal - totalOut;
+
+                const incomeReceived = mData.income.filter(i => i.paid).reduce((s, i) => s + i.amount, 0);
+                const paidOutTotal = [...mData.dd, ...mData.adhoc]
+                    .filter(i => i.paid)
+                    .reduce((s, i) => s + i.amount, 0);
+                
+                const remainingToPay = totalOut - paidOutTotal;
+                const netBalanceResult = mData.bankBalance + incomeReceived - remainingToPay;
+
+                const catTotals = {};
+                [...mData.dd, ...mData.adhoc].forEach(item => {
+                    const cat = item.category || 'Other';
+                    catTotals[cat] = (catTotals[cat] || 0) + item.amount;
+                });
+
+                let catPillsHtml = '';
+                for (const [cat, amt] of Object.entries(catTotals)) {
+                    catPillsHtml += `<div class="cat-pill">${cat}: £${amt.toFixed(2)}</div>`;
+                }
+
+                let incHtml = '';
+                mData.income.forEach((item, idx) => { incHtml += renderRow(month, 'income', idx, item); });
+
+                let ddHtml = '';
+                mData.dd.forEach((item, idx) => { ddHtml += renderRow(month, 'dd', idx, item); });
+
+                let adhocHtml = '';
+                mData.adhoc.forEach((item, idx) => { adhocHtml += renderRow(month, 'adhoc', idx, item); });
+
+                container.innerHTML += `
+                    <div id="tab-${month}" class="tab-content ${month === currentActiveMonth ? 'active' : ''}">
+                        <div class="card">
+                            <h2>${month} Snapshot</h2>
+                            
+                            <div class="bank-box">
+                                <div class="bank-input-row">
+                                    <span>Current Account Balance:</span>
+                                    <input type="number" step="0.01" class="bank-input" value="${mData.bankBalance}" onchange="updateBank('${month}', this.value)">
+                                </div>
+                                <div class="net-result-row">
+                                    <span>Total Remaining (Net):</span>
+                                    <span class="${netBalanceResult >= 0 ? 'green' : 'red'}">£${netBalanceResult.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <div class="snapshot-grid">
+                                <div class="stat-box"><div class="stat-label">Remaining to Pay</div><div class="stat-value red">£${remainingToPay.toFixed(2)}</div></div>
+                                <div class="stat-box"><div class="stat-label">Income Received</div><div class="stat-value green">£${incomeReceived.toFixed(2)}</div></div>
+                                <div class="stat-box"><div class="stat-label">Total Outgoings</div><div class="stat-value">£${totalOut.toFixed(2)}</div></div>
+                                <div class="stat-box"><div class="stat-label">Planned Save</div><div class="stat-value green">£${plannedBalance.toFixed(2)}</div></div>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; margin-top:8px; letter-spacing:0.5px;">Spend by Category:</div>
+                            <div class="category-breakdown">${catPillsHtml}</div>
+                        </div>
+                        <div class="card">
+                            <h2>Income <button class="add-row-btn" onclick="addItem('${month}', 'income')">+ Add Income</button></h2>
+                            <ul class="item-list">${incHtml}</ul>
+                        </div>
+                        <div class="card">
+                            <h2>Direct Debits & Bills <button class="add-row-btn" onclick="addItem('${month}', 'dd')">+ Add Bill</button></h2>
+                            <ul class="item-list">${ddHtml}</ul>
+                        </div>
+                        <div class="card">
+                            <h2>Ad Hoc Expenses & Groceries <button class="add-row-btn" onclick="addItem('${month}', 'adhoc')">+ Add Ad Hoc</button></h2>
+                            <ul class="item-list">${adhocHtml}</ul>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderRow(month, type, idx, item) {
+            return `
+                <li class="item-row">
+                    <div class="item-info">
+                        <span class="item-name">${item.name}</span>
+                        <div class="item-meta"><span class="badge">${item.category || 'General'}</span><span class="item-desc">${item.desc}</span></div>
+                    </div>
+                    <div class="item-right">
+                        <span class="item-amount">£${item.amount.toFixed(2)}</span>
+                        <input type="number" step="0.01" class="amount-input" value="${item.amount}" onchange="updateVal('${month}', '${type}', ${idx}, 'amount', this.value)">
+                        <button class="delete-btn" onclick="deleteItem('${month}', '${type}', ${idx})">✕</button>
+                        <label class="checkbox-container">
+                            <input type="checkbox" ${item.paid ? 'checked' : ''} onchange="togglePaid('${month}', '${type}', ${idx})">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                </li>`;
+        }
+
+        function switchMonth(month) {
+            currentActiveMonth = month;
+            saveData();
+        }
+
+        function updateBank(month, val) {
+            data[month].bankBalance = parseFloat(val) || 0;
+            saveData();
+        }
+
+        function addNewMonth() {
+            const newName = prompt("Enter new Month & Year (e.g. December 2026):");
+            if (!newName || data[newName]) return;
+
+            const prevMonths = Object.keys(data);
+            const template = prevMonths.length > 0 ? JSON.parse(JSON.stringify(data[prevMonths[prevMonths.length - 1]])) : { income: [], dd: [], adhoc: [], bankBalance: 0 };
+            
+            template.income.forEach(i => i.paid = false);
+            template.dd.forEach(i => i.paid = false);
+            if(template.adhoc) template.adhoc.forEach(i => i.paid = false);
+            template.bankBalance = 0;
+
+            data[newName] = template;
+            currentActiveMonth = newName;
+            saveData();
+        }
+
+        function addItem(month, type) {
+            const name = prompt("Enter item name (e.g. Groceries, Fuel, One-off):");
+            if (!name) return;
+            const defaultCat = type === 'adhoc' ? 'Groceries' : 'General';
+            const category = prompt("Enter category (e.g. Groceries, Housing, Utilities, Giving, Subscriptions):", defaultCat);
+            const amount = parseFloat(prompt("Enter amount (£):", "0")) || 0;
+            
+            if(!data[month][type]) data[month][type] = [];
+            data[month][type].push({ name: name, desc: "Custom", category: category || "General", amount: amount, paid: false });
+            saveData();
+        }
+
+        function deleteItem(month, type, idx) {
+            if(confirm("Are you sure you want to delete this item?")) {
+                data[month][type].splice(idx, 1);
+                saveData();
+            }
+        }
+
+        function togglePaid(month, type, idx) {
+            data[month][type][idx].paid = !data[month][type][idx].paid;
+            saveData();
+        }
+
+        function updateVal(month, type, idx, field, val) {
+            data[month][type][idx][field] = parseFloat(val) || 0;
+            saveData();
+        }
+
+        function toggleEditMode() {
+            const body = document.getElementById('app-body');
+            const btn = document.getElementById('edit-btn');
+            body.classList.toggle('editing');
+            if(body.classList.contains('editing')) {
+                btn.classList.add('active-edit');
+                btn.innerText = "💾 Done";
+            } else {
+                btn.classList.remove('active-edit');
+                btn.innerText = "✏️ Edit";
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
